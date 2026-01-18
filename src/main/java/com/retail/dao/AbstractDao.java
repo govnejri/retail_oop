@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-
 public abstract class AbstractDao<T, ID> implements BaseDao<T, ID> {
     protected final Logger logger = LoggerFactory.getLogger(getClass());
     protected final DatabaseManager dbManager;

@@ -6,7 +6,6 @@ import java.sql.*;
 import java.util.List;
 import java.util.Optional;
 
-
 public class CategoryDao extends AbstractDao<Category, Integer> {
 
     @Override
