@@ -12,6 +12,8 @@ import com.retail.model.User;
 import com.retail.model.enums.UserRole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.retail.cli.handler.BaseMenuHandler;
+import com.retail.cli.handler.MenuHandlerFactory;
 
 import java.util.Scanner;
 
@@ -122,33 +124,17 @@ public class Application {
 
     private void showRoleBasedMenu() {
         User user = context.getCurrentUser();
-        
+
         if (user == null) {
             context.logout();
             return;
         }
 
         UserRole role = user.getRole();
-        boolean shouldLogout;
 
-        switch (role) {
-            case ADMIN -> {
-                AdminMenuHandler handler = new AdminMenuHandler(context, input);
-                shouldLogout = handler.handle();
-            }
-            case MANAGER -> {
-                ManagerMenuHandler handler = new ManagerMenuHandler(context, input);
-                shouldLogout = handler.handle();
-            }
-            case EMPLOYEE -> {
-                EmployeeMenuHandler handler = new EmployeeMenuHandler(context, input);
-                shouldLogout = handler.handle();
-            }
-            default -> {
-                ConsoleFormatter.printError("Неизвестная роль пользователя");
-                shouldLogout = true;
-            }
-        }
+        // Использование Factory Pattern для создания обработчика меню
+        BaseMenuHandler handler = MenuHandlerFactory.createHandler(role, context, input);
+        boolean shouldLogout = handler.handle();
 
         if (shouldLogout) {
             String username = user.getLogin();
