@@ -15,6 +15,8 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
+import com.retail.util.Validator;
+
 
 public class ProductService {
     private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
@@ -153,22 +155,42 @@ public class ProductService {
     }
 
     private void validateProduct(Product product) {
-        if (product.getSku() == null || product.getSku().trim().isEmpty()) {
-            throw new ValidationException("Артикул не может быть пустым");
-        }
-        
-        if (product.getName() == null || product.getName().trim().isEmpty()) {
-            throw new ValidationException("Название не может быть пустым");
-        }
-        
-        if (product.getSellingPrice() == null || product.getSellingPrice().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new ValidationException("Цена продажи должна быть положительной");
+        // Использование Lambda-валидаторов из класса Validator
+        Validator.requireNotEmpty(product.getSku(), "Артикул");
+        Validator.requireNotEmpty(product.getName(), "Название товара");
+        Validator.validatePrice(product.getSellingPrice(), "Цена продажи");
+
+        if (product.getPurchasePrice() != null) {
+            Validator.validate(
+                    product.getPurchasePrice(),
+                    Validator.NON_NEGATIVE_AMOUNT,
+                    "Закупочная цена не может быть отрицательной"
+            );
         }
     }
 
-    
 
-    
+    public List<Product> filterProducts(BigDecimal minPrice, BigDecimal maxPrice, Integer categoryId) {
+        List<Product> products = findAllActive();
+
+        return products.stream()
+                .filter(p -> minPrice == null || p.getSellingPrice().compareTo(minPrice) >= 0)
+                .filter(p -> maxPrice == null || p.getSellingPrice().compareTo(maxPrice) <= 0)
+                .filter(p -> categoryId == null || categoryId.equals(p.getCategoryId()))
+                .toList();
+    }
+
+
+    public List<Product> findLowStockProducts() {
+        return findAllActive().stream()
+                .filter(p -> p.getStockQuantity() != null && p.getMinStockLevel() != null)
+                .filter(p -> p.getStockQuantity() <= p.getMinStockLevel())
+                .toList();
+    }
+
+
+
+
     public Category createCategory(String name, String description) {
         try {
             if (name == null || name.trim().isEmpty()) {
