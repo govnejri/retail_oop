@@ -254,4 +254,13 @@ public class SaleService {
             throw new DatabaseException("Ошибка при получении позиций", e);
         }
     }
+
+    public Optional<SaleDao.SaleFullDescription> getFullSaleDescription(Integer saleId) {
+        try {
+            return saleDao.getFullSaleDescription(saleId);
+        } catch (SQLException e) {
+            logger.error("Ошибка получения полного описания продажи", e);
+            throw new DatabaseException("Ошибка при получении описания продажи", e);
+        }
+    }
 }
